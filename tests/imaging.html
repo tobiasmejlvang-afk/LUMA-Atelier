@@ -1,0 +1,139 @@
+<!doctype html>
+<html lang="da">
+<meta charset="utf-8">
+<title>LUMA Atelier · billedtest</title>
+<main>
+  <h1>Test af billedbehandling og eksport</h1>
+  <pre id="result">Kører…</pre>
+</main>
+<script type="module">
+  import { defaultEdits, drawHistogram, drawPhoto, exportPhoto } from "../dist/imaging.js";
+
+  const result = document.querySelector("#result");
+  const messages = [];
+
+  function makeCanvas(width = 12, height = 8) {
+    const canvas = document.createElement("canvas");
+    canvas.width = width;
+    canvas.height = height;
+    return canvas;
+  }
+
+  function pixel(canvas, x, y) {
+    return [...canvas.getContext("2d").getImageData(x, y, 1, 1).data];
+  }
+
+  function assert(condition, message) {
+    if (!condition) throw new Error(message);
+  }
+
+  async function check(label, run) {
+    try {
+      await run();
+      messages.push(`OK · ${label}`);
+    } catch (error) {
+      messages.push(`FEJL · ${label} · ${error.message}`);
+    }
+  }
+
+  function getExifTags(bytes, tiffStart, offset) {
+    const data = new DataView(bytes.buffer);
+    const directory = tiffStart + offset;
+    const count = data.getUint16(directory, true);
+    return new Map(Array.from({ length: count }, (_, index) => {
+      const start = directory + 2 + index * 12;
+      return [data.getUint16(start, true), data.getUint32(start + 8, true)];
+    }));
+  }
+
+  async function readExif(blob) {
+    const bytes = new Uint8Array(await blob.arrayBuffer());
+    const signature = [69, 120, 105, 102, 0, 0];
+    const marker = bytes.findIndex((value, index) => value === 0xff && bytes[index + 1] === 0xe1
+      && signature.every((byte, offset) => bytes[index + 4 + offset] === byte));
+    if (marker < 0) return null;
+    const tiffStart = marker + 10;
+    const primary = getExifTags(bytes, tiffStart, 8);
+    return {
+      primary,
+      technical: primary.has(0x8769) ? getExifTags(bytes, tiffStart, primary.get(0x8769)) : null,
+      gps: primary.has(0x8825) ? getExifTags(bytes, tiffStart, primary.get(0x8825)) : null,
+    };
+  }
+
+  const source = makeCanvas();
+  const original = source.getContext("2d");
+  original.fillStyle = "#606060";
+  original.fillRect(0, 0, source.width, source.height);
+  original.fillStyle = "#cc3322";
+  original.fillRect(0, 0, 3, 3);
+  original.fillStyle = "#ffffff";
+  original.fillRect(11, 7, 1, 1);
+
+  const preview = makeCanvas();
+  await check("Forhåndsvisning bevarer farver og original", async () => {
+    await drawPhoto(preview, source);
+    assert(pixel(preview, 1, 1)[0] === 204, "Den oprindelige farve ændrede sig.");
+    await drawPhoto(preview, source, { ...defaultEdits, exposure: 50 });
+    assert(pixel(preview, 8, 4)[0] > 120, "Eksponeringen gjorde gråtonen for lidt lysere.");
+    assert(pixel(source, 8, 4)[0] === 96, "Originalen blev ændret.");
+  });
+
+  await check("Lokalt lys lysner motivet og holder kanterne stabile", async () => {
+    await drawPhoto(preview, source, { light: { x: 0.5, y: 0.5, radius: 0.42, strength: 55, softness: 65 } });
+    assert(pixel(preview, 6, 4)[0] > 125 && pixel(preview, 10, 4)[0] === 96, "Den lokale maske faldt uden for området.");
+  });
+
+  await check("Rotation og centralt formatudsnit", async () => {
+    await drawPhoto(preview, source, { rotation: 90 });
+    assert(preview.width === 8 && preview.height === 12, "Rotation gav forkerte dimensioner.");
+    assert(pixel(preview, 6, 1)[0] === 204, "Rotation gav forkert pixelplacering.");
+    await drawPhoto(preview, source, { rotation: 90 }, { cropAspect: 1 });
+    assert(preview.width === 8 && preview.height === 8, "Det kvadratiske udsnit fik forkert størrelse.");
+  });
+
+  await check("RGB-histogram bruger billedet før overbelysningsmarkering", async () => {
+    await drawPhoto(preview, source, defaultEdits, { clipping: true });
+    assert(pixel(preview, 11, 7)[1] === 70, "Den udbrændte pixel fik ingen markering.");
+    const histogram = drawHistogram(makeCanvas(256, 72), preview);
+    assert(histogram.green[255] === 1 && histogram.green[70] === 0, "Histogrammet medregnede markeringens farve.");
+  });
+
+  await check("JPEG, PNG og WebP har fuld originalopløsning", async () => {
+    for (const format of ["image/jpeg", "image/png", "image/webp"]) {
+      const file = await exportPhoto(source, defaultEdits, { format });
+      const decoded = await createImageBitmap(file);
+      try {
+        assert(file.type === format && decoded.width === 12 && decoded.height === 8, `Forkert eksport til ${format}.`);
+      } finally {
+        decoded.close();
+      }
+    }
+  });
+
+  await check("Eksportgrænser holder billedets proportioner", async () => {
+    const file = await exportPhoto(source, defaultEdits, { width: 9, height: 9, format: "image/png" });
+    const decoded = await createImageBitmap(file);
+    try {
+      assert(decoded.width === 9 && decoded.height === 6, "Forkerte dimensioner efter skalering.");
+    } finally {
+      decoded.close();
+    }
+  });
+
+  await check("Tekniske metadata og GPS kan vælges uafhængigt", async () => {
+    const metadata = { camera: "Testkamera", aperture: 2.8, gps: { lat: 55.67, lng: 12.57 } };
+    const defaults = await readExif(await exportPhoto(source, defaultEdits, { metadata }));
+    const tech = await readExif(await exportPhoto(source, defaultEdits, { metadata, includeMetadata: true }));
+    const gps = await readExif(await exportPhoto(source, defaultEdits, { metadata, includeGps: true }));
+    const both = await readExif(await exportPhoto(source, defaultEdits, { metadata, includeMetadata: true, includeGps: true }));
+    assert(defaults === null, "Metadata fulgte med som standard.");
+    assert(tech?.technical?.get(0xA002) === 12 && tech?.technical?.get(0xA003) === 8 && tech.gps === null, "Teknisk eksport indeholder forkert størrelse eller GPS.");
+    assert(gps?.gps?.has(2) && gps?.gps?.has(4) && gps.technical === null, "GPS-eksport indeholder mangelfulde koordinater.");
+    assert(both?.technical?.has(0x829D) && both?.gps?.has(4), "Kombineret eksport mangler EXIF-felter.");
+  });
+
+  result.textContent = messages.join("\n");
+  document.documentElement.dataset.status = messages.every((message) => message.startsWith("OK")) ? "passed" : "failed";
+</script>
+</html>
