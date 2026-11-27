@@ -201,12 +201,12 @@ function emptyCreative(container, mode) {
   container.innerHTML = `<section class="cr-shell"><h1>${titles[mode]}</h1><div class="cr-empty">Importér et billede i Bibliotek for at komme i gang.</div></section>`;
 }
 
-function designMarkup(assets, master, settings, active) {
+function designMarkup(assets, master, settings, active, icon) {
   const format = formats.find((entry) => entry.id === active);
   const layout = settings.layouts[active];
   return `<section class="cr-shell">
     <header class="cr-heading"><div><h1>Design</h1><p>Fire formater med samme masterfoto.</p></div>
-      <button type="button" class="cr-primary" data-cr="export-all">Hent alle · ZIP</button>
+      <button type="button" class="cr-primary" data-cr="export-all">${icon('export')} Hent alle · ZIP</button>
     </header>
     <div class="cr-design">
       <div class="cr-gallery" aria-label="Annonceformater">${formats.map((item) => `<button type="button" class="cr-card ${item.id === active ? 'cr-selected' : ''}" data-format="${item.id}" aria-pressed="${item.id === active}"><span class="cr-card-media"><canvas data-preview="${item.id}" aria-label="${item.name}, ${item.ratio}"></canvas></span><span class="cr-card-title">${item.name}<small>${item.ratio} · ${item.width} × ${item.height}</small></span></button>`).join('')}</div>
@@ -217,14 +217,14 @@ function designMarkup(assets, master, settings, active) {
         <button type="button" class="cr-secondary" data-cr="preview-update" hidden>Forhåndsvis masterændring</button>
         <button type="button" class="cr-secondary" data-cr="update" hidden>Godkend masteropdatering</button>
         <hr><h2>${format.name} <small>${format.ratio}</small></h2>
-        <label>Vandret beskæring<input data-layout="x" type="range" min="0" max="100" value="${finite(layout.x, 50)}"></label>
-        <label>Lodret beskæring<input data-layout="y" type="range" min="0" max="100" value="${finite(layout.y, 50)}"></label>
+        <label><span>${icon('crop')} Vandret beskæring</span><input data-layout="x" type="range" min="0" max="100" value="${finite(layout.x, 50)}"></label>
+        <label><span>${icon('crop')} Lodret beskæring</span><input data-layout="y" type="range" min="0" max="100" value="${finite(layout.y, 50)}"></label>
         <label>Overskrift<textarea data-layout="text" rows="2" maxlength="180" placeholder="Tilføj tekst">${escapeHtml(layout.text)}</textarea></label>
         <div class="cr-two"><label>Placering<select data-layout="placement"><option value="bottom" ${layout.placement === 'bottom' ? 'selected' : ''}>Nederst</option><option value="middle" ${layout.placement === 'middle' ? 'selected' : ''}>I midten</option><option value="top" ${layout.placement === 'top' ? 'selected' : ''}>Øverst</option></select></label>
         <label>Tekstfarve<input data-layout="color" type="color" value="${escapeHtml(layout.color)}"></label></div>
         <label>Tekststørrelse<input data-layout="size" type="range" min="3" max="20" value="${finite(layout.size, 7)}"></label>
         <hr><h2>Eksportkontrol</h2><ul class="cr-checks" data-cr="checks" aria-live="polite"><li>Kontrollerer billedet …</li></ul>
-        <button type="button" class="cr-secondary" data-cr="export">Hent ${format.name.toLowerCase()} · JPEG</button>
+        <button type="button" class="cr-secondary" data-cr="export">${icon('export')} Hent ${format.name.toLowerCase()} · JPEG</button>
       </aside>
     </div></section>`;
 }
@@ -254,7 +254,7 @@ async function renderDesign(container, ctx, assets) {
   const render = async () => {
     const settings = setup();
     const mountedAsset = master;
-    container.innerHTML = designMarkup(assets, mountedAsset, settings, active);
+    container.innerHTML = designMarkup(assets, mountedAsset, settings, active, ctx.icon);
     const shell = container.firstElementChild;
     const element = (key) => shell.querySelector(`[data-cr="${key}"]`);
     const checks = element('checks');
@@ -486,7 +486,7 @@ function renderBook(container, ctx, assets) {
 
   const render = () => {
     const spread = book.spreads[selected];
-    container.innerHTML = `<section class="cr-shell"><header class="cr-heading"><div><h1>Fotobog</h1><p>Opslag med to sider · 24 × 20 cm pr. side.</p></div><button type="button" class="cr-primary" data-cr="print" ${book.spreads.length ? '' : 'disabled'}>Hent fotobog · PDF</button></header>
+    container.innerHTML = `<section class="cr-shell"><header class="cr-heading"><div><h1>Fotobog</h1><p>Opslag med to sider · 24 × 20 cm pr. side.</p></div><button type="button" class="cr-primary" data-cr="print" ${book.spreads.length ? '' : 'disabled'}>${ctx.icon('export')} Hent fotobog · PDF</button></header>
       <div class="cr-book-bar"><label>Bogens titel<input type="text" data-cr="title" maxlength="100" value="${escapeHtml(book.name)}"></label><button type="button" class="cr-secondary" data-cr="add">Tilføj opslag</button>${book.spreads.length === 0 && assets.length > 1 ? '<button type="button" class="cr-secondary" data-cr="chronology">Opret efter optagedato</button>' : ''}</div>
       ${spread ? `<div class="cr-spreads" aria-label="Opslag">${book.spreads.map((_, index) => `<button type="button" class="cr-secondary ${index === selected ? 'cr-selected' : ''}" data-spread="${index}" aria-pressed="${index === selected}">Opslag ${index + 1}</button>`).join('')}</div>
       <div class="cr-book"><div class="cr-pages">${spread.pages.map((page, index) => bookPage(assets, page, index)).join('')}</div>
@@ -648,7 +648,7 @@ function renderCreation(container, ctx, assets) {
     <div class="cr-reference"><label>Referencefoto<select data-cr="reference">${assetOptions(assets, '', 'Vælg et billede')}</select></label><button type="button" class="cr-secondary" data-cr="match">Match toner</button></div>
     <hr><h2>Redigeringsplan</h2><ul class="cr-checks" data-cr="plan"><li>Vælg en opskrift eller lav et forslag.</li></ul>
     <label>Styrke<input data-cr="strength" type="range" min="0" max="100" value="100" disabled></label>
-    <button type="button" class="cr-primary" data-cr="save" disabled>Gem som billedversion</button><button type="button" class="cr-secondary" data-cr="download" disabled>Hent forslag · JPEG</button>
+    <button type="button" class="cr-primary" data-cr="save" disabled>Gem som billedversion</button><button type="button" class="cr-secondary" data-cr="download" disabled>${ctx.icon('export')} Hent forslag · JPEG</button>
     <p class="cr-status" data-cr="status" role="status">Forslagene bruger lokale farve- og tonejusteringer.</p></aside></div></section>`;
   const shell = container.firstElementChild;
   const el = (id) => shell.querySelector(`[data-cr="${id}"]`);

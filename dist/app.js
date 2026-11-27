@@ -5,26 +5,30 @@ const $ = (id) => document.getElementById(id);
 const main = $('main');
 const dialog = $('dialog');
 const routes = { library: 'Bibliotek', develop: 'Fremkald', retouch: 'Retouchér', create: 'Skab', design: 'Design', book: 'Fotobog', viewer: 'Fremviser', trash: 'Papirkurv', settings: 'Projektindstillinger', duplicates: 'Dubletter' };
-const routeIcons = { library: 'grid', develop: 'sliders', retouch: 'brush', create: 'spark', design: 'design', book: 'book', viewer: 'play', trash: 'trash', settings: 'settings', duplicates: 'copy' };
 const paths = {
-  grid:'<rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/>',
   sliders:'<path d="M4 4v16M12 4v16M20 4v16M2 9h4m4 6h4m4-7h4"/>',
-  brush:'<path d="m12 15 8-8a2 2 0 0 0-3-3l-8 8m3 3c0 4-4 6-9 5 2-1 2-4 3-6 1-2 4-2 6 1Z"/>',
-  spark:'<path d="M12 2c.8 5.5 2.5 7.2 8 8-5.5.8-7.2 2.5-8 8-.8-5.5-2.5-7.2-8-8 5.5-.8 7.2-2.5 8-8ZM20 14v7m-3.5-3.5h7M4 3v4M2 5h4"/>',
-  design:'<rect x="3" y="4" width="18" height="16" rx="2"/><path d="M3 9h18m-11 0v11"/>',
-  book:'<path d="M12 6c-3-2-6-2-9-1v14c3-1 6-1 9 1 3-2 6-2 9-1V5c-3-1-6-1-9 1Zm0 0v14"/>',
-  play:'<rect x="3" y="4" width="18" height="16" rx="2"/><path d="m10 8 6 4-6 4Z"/>',
-  trash:'<path d="M4 6h16m-13 0 1 14h8l1-14M9 6V3h6v3m-5 4v6m4-6v6"/>',
-  folder:'<path d="M3 6h7l2 2h9v11H3z"/>', search:'<circle cx="10.5" cy="10.5" r="5.5"/><path d="m15 15 5 5"/>',
-  import:'<path d="M12 3v12m-4-4 4 4 4-4M4 15v5h16v-5"/>', settings:'<circle cx="12" cy="12" r="3"/><path d="m8 4 2 2h4l2-2 4 4-2 2v4l2 2-4 4-2-2h-4l-2 2-4-4 2-2v-4L4 8z"/>',
+  folder:'<path d="M3 6h7l2 2h9v11H3z"/>',
+  search:'<circle cx="10.5" cy="10.5" r="5.5"/><path d="m15 15 5 5"/>',
+  settings:'<circle cx="12" cy="12" r="3"/><path d="m8 4 2 2h4l2-2 4 4-2 2v4l2 2-4 4-2-2h-4l-2 2-4-4 2-2v-4L4 8z"/>',
   photo:'<rect x="3" y="4" width="18" height="16" rx="2"/><circle cx="9" cy="9" r="1.5"/><path d="m4 18 6-6 3 3 3-4 5 6"/>',
-  star:'<path d="m12 3 2.8 5.5 6.2.9-4.5 4.3 1.1 6.1-5.6-2.9-5.6 2.9 1.1-6.1L3 9.4l6.2-.9Z"/>',
-  plus:'<path d="M12 4v16M4 12h16"/>', arrow:'<path d="M4 12h16m-6-6 6 6-6 6"/>', back:'<path d="M20 12H4m6-6-6 6 6 6"/>',
-  copy:'<rect x="7" y="7" width="13" height="13" rx="2"/><path d="M17 4H4v13"/>', menu:'<path d="M4 6h16M4 12h16M4 18h16"/>',
-  export:'<path d="M12 17V3m-4 4 4-4 4 4M4 15v5h16v-5"/>', close:'<path d="m5 5 14 14M5 19 19 5"/>',
-  visible:'<path d="M2 12s3.5-6 10-6 10 6 10 6-3.5 6-10 6-10-6-10-6Z"/><circle cx="12" cy="12" r="2.5"/>', chevron:'<path d="m9 5 7 7-7 7"/>',
+  plus:'<path d="M12 4v16M4 12h16"/>',
+  arrow:'<path d="M4 12h16m-6-6 6 6-6 6"/>',
+  back:'<path d="M20 12H4m6-6-6 6 6 6"/>',
+  copy:'<rect x="7" y="7" width="13" height="13" rx="2"/><path d="M17 4H4v13"/>',
+  menu:'<path d="M4 6h16M4 12h16M4 18h16"/>',
+  close:'<path d="m5 5 14 14M5 19 19 5"/>',
 };
-const ico = (name) => `<span class="icon" aria-hidden="true"><svg viewBox="0 0 24 24">${paths[name] || paths.photo}</svg></span>`;
+const symbolIds = new Set([
+  'library', 'develop', 'retouch', 'create', 'design', 'photo-book', 'viewer',
+  'import', 'export', 'crop', 'layers', 'mask', 'brush', 'light', 'compare',
+  'capture-date', 'location', 'history', 'favorite', 'trash'
+]);
+function ico(name) {
+  const shape = symbolIds.has(name)
+    ? `<use href="./assets/brand/luma-symbols.svg#${name}"></use>`
+    : (paths[name] || paths.photo);
+  return `<span class="icon" aria-hidden="true"><svg viewBox="0 0 24 24" focusable="false">${shape}</svg></span>`;
+}
 const escape = (value = '') => String(value ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const button = (action, label, icon, style = '', id = '') => `<button type="button" class="btn ${style}" data-action="${action}" ${id ? `data-id="${escape(id)}"` : ''}>${icon ? ico(icon) : ''}${escape(label)}</button>`;
 const id = () => crypto.randomUUID();
@@ -142,17 +146,17 @@ function nav(action, label, icon, count = '', active = false, item = '') {
 function renderFrame() {
   $('shell').classList.toggle('menu-open',state.menu);
   const album = project.albums.find(row => row.id === state.album);
-  $('sidebar').innerHTML = `<button class="brand" data-action="route" data-id="library" aria-label="LUMA Atelier, startside"><span class="brand-mark" aria-hidden="true">✳</span><span class="brand-copy"><strong>LUMA</strong><small>ATELIER</small></span></button>
-    <div class="nav-heading">Arbejdsrum</div><nav class="nav-list" aria-label="Arbejdsrum">${Object.keys(routes).slice(0,7).map(key => nav('route',routes[key],routeIcons[key],'',state.route === key && !state.album,key)).join('')}</nav>
+  $('sidebar').innerHTML = `<button class="brand" data-action="route" data-id="library" aria-label="LUMA Atelier, startside"><img class="brand-logo" src="./assets/brand/luma-logo-dark.svg" alt=""></button>
+    <div class="nav-heading">Arbejdsrum</div><nav class="nav-list" aria-label="Arbejdsrum">${Object.keys(routes).slice(0,7).map(key => nav('route',routes[key],key === 'book' ? 'photo-book' : key,'',state.route === key && !state.album,key)).join('')}</nav>
     <div class="nav-heading">Samlinger</div><nav class="nav-list" aria-label="Samlinger">
-      ${nav('album','Favoritter','star',activeAssets().filter(a => a.favorite).length,state.album === 'favorites','favorites')}
+      ${nav('album','Favoritter','favorite',activeAssets().filter(a => a.favorite).length,state.album === 'favorites','favorites')}
       ${nav('route','Dubletter','copy','',state.route === 'duplicates','duplicates')}
       ${project.albums.map(row => nav('album',row.name,'folder','',state.album === row.id,row.id)).join('')}
       ${nav('create-album','Nyt album','plus')}
       ${nav('route','Papirkurv','trash',project.assets.filter(a => a.trashed).length,state.route === 'trash','trash')}
     </nav><div class="sidebar-bottom">${nav('route','Indstillinger','settings','',state.route === 'settings','settings')}<div class="storage-note"><span class="dot"></span> Lokalt projekt</div></div>`;
   $('topbar').innerHTML = `<div class="row" style="flex-wrap:nowrap;min-width:0"><button class="icon-btn menu-toggle" data-action="menu" aria-label="Åbn navigation" aria-expanded="${state.menu}">${ico('menu')}</button><div class="breadcrumbs"><span class="crumb-root">${escape(project.name)}</span><span class="crumb-divider" aria-hidden="true">/</span><strong>${escape(album?.name || (state.album === 'favorites' ? 'Favoritter' : routes[state.route]))}</strong></div></div>
-    <div class="top-actions">${button('project','Åbn projekt','folder','subtle')}${button('import','Importér billeder','plus','primary')}</div>`;
+    <div class="top-actions">${button('project','Åbn projekt','folder','subtle')}${button('import','Importér billeder','import','primary')}</div>`;
   $('footer').innerHTML = `<div class="footer-group"><span class="dot"></span><span>Originaler gemmes på denne enhed</span></div><span>${activeAssets().length.toLocaleString('da-DK')} billeder</span>`;
 }
 
@@ -228,7 +232,7 @@ function photoCard(asset) {
   const thumb = `<span class="placeholder">${ico('photo')}</span>`;
   const t = titleOf(asset).replace(/\.(jpe?g|png|webp|avif|bmp|tiff?|heic)$/i,'');
   return `<article class="photo-card"><button type="button" class="photo-thumb" data-action="${show}" data-id="${key}" data-thumb="${key}" aria-label="Åbn ${escape(t)}">${thumb}</button>
-    ${state.route === 'trash' ? '' : `<input type="checkbox" class="select-photo" data-select="${key}" aria-label="Vælg ${escape(t)}" ${state.selected.has(asset.id) ? 'checked' : ''}><button type="button" class="favorite ${asset.favorite ? 'on' : ''}" data-action="favorite" data-id="${key}" aria-label="Favorit, ${escape(t)}" aria-pressed="${!!asset.favorite}">${asset.favorite ? '★' : '☆'}</button>`}
+    ${state.route === 'trash' ? '' : `<input type="checkbox" class="select-photo" data-select="${key}" aria-label="Vælg ${escape(t)}" ${state.selected.has(asset.id) ? 'checked' : ''}><button type="button" class="favorite ${asset.favorite ? 'on' : ''}" data-action="favorite" data-id="${key}" aria-label="Favorit, ${escape(t)}" aria-pressed="${!!asset.favorite}">${ico('favorite')}</button>`}
     <div class="card-caption"><span><strong title="${escape(asset.name)}">${escape(t)}</strong><small>${asset.duplicateOf ? 'Identisk fil' : escape(dateDisplay(effectiveMetadata(asset).date))}</small></span><span>${escape(ext(asset.name).toUpperCase().slice(0,6))}</span></div></article>`;
 }
 
@@ -239,7 +243,7 @@ function renderCards() {
   const assets = libraryAssets();
   const visible = assets.slice(0,state.page * 80);
   target.innerHTML = assets.length ? `<div class="grid">${visible.map(photoCard).join('')}</div>${visible.length < assets.length ? `<div class="row" style="margin-top:13px">${button('more','Vis flere billeder','plus','subtle')}<span class="status">${visible.length} af ${assets.length}</span></div>` : ''}`
-    : `<div class="empty">${ico(state.route === 'trash' ? 'trash' : 'photo')}<strong>${state.query ? 'Ingen billeder matcher din søgning' : state.route === 'trash' ? 'Papirkurven er tom' : state.route === 'duplicates' ? 'Ingen identiske filer fundet' : 'Ingen billeder i denne samling'}</strong>${!state.query && state.route === 'library' && !state.album ? button('import','Importér billeder','plus','primary') : ''}</div>`;
+    : `<div class="empty">${ico(state.route === 'trash' ? 'trash' : 'photo')}<strong>${state.query ? 'Ingen billeder matcher din søgning' : state.route === 'trash' ? 'Papirkurven er tom' : state.route === 'duplicates' ? 'Ingen identiske filer fundet' : 'Ingen billeder i denne samling'}</strong>${!state.query && state.route === 'library' && !state.album ? button('import','Importér billeder','import','primary') : ''}</div>`;
   loadThumbs(target);
   renderSelection();
 }
@@ -249,7 +253,7 @@ function renderSelection() {
   if (!target) return;
   const count = state.selected.size;
   const album = project.albums.find(row => row.id === state.album);
-  target.innerHTML = (count ? `<span class="selected-count">${count} valgt</span>${button('add-album','Føj til album','folder','compact')}${album && !album.query ? button('remove-album','Fjern fra album',null,'compact') : ''}${button('batch','Redigér serie','spark','compact')}${button('clear-selection','Fravælg',null,'compact')}` : '') + (state.route === 'library' && project.batchHistory?.length ? button('undo-batch','Fortryd seneste serieredigering','back','compact subtle') : '');
+  target.innerHTML = (count ? `<span class="selected-count">${count} valgt</span>${button('add-album','Føj til album','folder','compact')}${album && !album.query ? button('remove-album','Fjern fra album',null,'compact') : ''}${button('batch','Redigér serie','create','compact')}${button('clear-selection','Fravælg',null,'compact')}` : '') + (state.route === 'library' && project.batchHistory?.length ? button('undo-batch','Fortryd seneste serieredigering','back','compact subtle') : '');
 }
 
 function progressMarkup() {
@@ -265,7 +269,7 @@ function renderLibrary() {
   main.innerHTML = `<div class="page"><div class="page-title"><div>${home ? `<div class="eyebrow">${escape(project.name)}</div>` : ''}<h1>${escape(name)}</h1><p>${home ? 'Importér, fremkald og saml dine billeder i ét arbejdsrum.' : current?.query ? `Smart album · ${escape(current.query)}` : state.route === 'trash' ? 'Gendan eller slet billeder permanent.' : state.route === 'duplicates' ? 'Gennemgå importerede filer med identisk indhold.' : 'Dine valgte billeder i dette projekt.'}</p></div>${home ? `<div class="row">${button('import-folder','Importér mappe','folder','subtle')}</div>` : ''}</div>
     <div id="import-progress">${progressMarkup()}</div>
     ${home ? `<div class="feature"><div id="compare-hero" class="compare-hero" style="--split:${state.split}%"><img class="original" src="./assets/demo-1.jpg" alt=""><img class="graded" src="./assets/demo-1.jpg" alt="Sø og bjerglandskab i Dolomitterne"><div class="hero-shade"></div><span class="hero-tag before">Før</span><span class="hero-tag after">Efter</span><span class="compare-line"></span><span class="compare-knob" aria-hidden="true">‹ ›</span><span class="hero-caption">Dolomitterne</span><input id="compare-slider" type="range" min="0" max="100" value="${state.split}" aria-label="Sammenlign original og fremkaldt billede"></div>
-    <aside class="feature-panel">${ico('sliders')}<div><h2>Fremkald dit billede</h2><p>Prøv eksponering, farver og virtuelle lyskilder direkte på et foto.</p></div>${button('route','Åbn fremkaldelse','arrow','violet','develop')}</aside></div>` : ''}
+    <aside class="feature-panel">${ico('develop')}<div><h2>Fremkald dit billede</h2><p>Prøv eksponering, farver og virtuelle lyskilder direkte på et foto.</p></div>${button('route','Åbn fremkaldelse','arrow','violet','develop')}</aside></div>` : ''}
     <div class="section-head"><h2>${home ? 'Alle billeder' : 'Billeder'}</h2><div class="row"><label class="search">${ico('search')}<input id="query" value="${escape(state.query)}" placeholder="Søg i billeder" aria-label="Søg i billeder"></label><select id="sort" aria-label="Sortér billeder"><option value="import">Importrækkefølge</option><option value="date">Optagelsesdato</option><option value="name">Filnavn</option><option value="rating">Bedømmelse</option></select>${state.route === 'library' ? button('smart-album','Smart album','plus','compact subtle') : ''}</div></div><div class="row" id="selection" style="margin-bottom:9px"></div><div id="library-results"></div></div>`;
   $('sort').value = state.sort;
   renderCards();
@@ -288,12 +292,12 @@ function panelMarkup(asset) {
   if (state.tab === 'info') {
     content = `<h3>Optagelsesinfo</h3><dl class="metadata">${Object.entries(metadataNames).map(([key,name]) => `<dt>${name}</dt><dd>${escape(displayMetadata(key, meta[key]))}${meta[key] !== undefined && meta[key] !== '' ? ` <small>${Object.hasOwn(asset.overrides || {}, key) ? 'Manuel' : asset.demoUrl ? 'Eksempel' : 'Fil'}</small>` : ''}</dd>`).join('')}</dl><div class="stack">${button('metadata','Ret optagelsesinfo',null,'compact','')}${button('trash-move','Flyt til papirkurv','trash','compact subtle')}</div>`;
   } else if (state.tab === 'versions') {
-    content = `<h3>Versioner</h3><div class="stack">${[...asset.versions].reverse().map(v => `<button class="btn compact ${v.id === asset.versionId ? 'violet' : ''}" data-action="version-select" data-id="${escape(v.id)}" aria-pressed="${v.id === asset.versionId}">${escape(v.name)}</button>`).join('')}${button('version-save','Gem som version','plus','compact')}${button('batch','Rediger serie','spark','compact')}</div>`;
+    content = `<h3>${ico('history')} Versioner</h3><div class="stack">${[...asset.versions].reverse().map(v => `<button class="btn compact ${v.id === asset.versionId ? 'violet' : ''}" data-action="version-select" data-id="${escape(v.id)}" aria-pressed="${v.id === asset.versionId}">${escape(v.name)}</button>`).join('')}${button('version-save','Gem som version','plus','compact')}${button('batch','Rediger serie','create','compact')}</div>`;
   } else {
     const controls = state.studio ? controlList : controlList.filter(([key]) => ['exposure','contrast','temperature','saturation'].includes(key));
     const light = edits.light || { x:.5,y:.5,strength:0,warmth:0,softness:60,radius:.35 };
     content = `${state.studio ? '<h3>Histogram</h3><canvas class="hist" id="hist" width="230" height="66" aria-label="RGB-histogram"></canvas>' : ''}<h3>${state.route === 'retouch' ? 'Lys og farve' : 'Grundjusteringer'}</h3>${controls.map(rule => control(rule,edits[rule[0]])).join('')}
-      ${state.studio || state.route === 'retouch' ? `<details ${state.route === 'retouch' ? 'open' : ''}><summary>Virtuel lyskilde</summary><p class="status">Klik på billedet for at placere lyset.</p>${control(['light.strength','Styrke'] ,light.strength)}${control(['light.warmth','Farvetemperatur'],light.warmth)}${control(['light.softness','Blødhed',0],light.softness)}${control(['light.radius','Rækkevidde',5], Math.round(light.radius * 100))}</details>` : ''}
+      ${state.studio || state.route === 'retouch' ? `<details ${state.route === 'retouch' ? 'open' : ''}><summary>${ico('light')} Virtuel lyskilde</summary><p class="status">Klik på billedet for at placere lyset.</p>${control(['light.strength','Styrke'] ,light.strength)}${control(['light.warmth','Farvetemperatur'],light.warmth)}${control(['light.softness','Blødhed',0],light.softness)}${control(['light.radius','Rækkevidde',5], Math.round(light.radius * 100))}</details>` : ''}
       <div class="row">${button('reset-edit','Nulstil',null,'compact subtle')}${button('version-save','Gem version','plus','compact')}</div><hr><label class="field">Bedømmelse<select id="rating" aria-label="Bedømmelse">${[0,1,2,3,4,5].map(i => `<option value="${i}" ${i === (asset.rating || 0) ? 'selected' : ''}>${i ? `${i} ${i === 1 ? 'stjerne' : 'stjerner'}` : 'Ingen bedømmelse'}</option>`).join('')}</select></label>`;
   }
   return `<div class="panel-tabs" aria-label="Egenskaber">${[['adjust','Justeringer'],['versions','Versioner'],['info','Optagelsesinfo']].map(([key,name]) => `<button type="button" class="${state.tab === key ? 'active' : ''}" data-action="editor-tab" data-id="${key}" aria-pressed="${state.tab === key}">${name}</button>`).join('')}</div>${content}`;
@@ -305,12 +309,12 @@ function control([key,label,min = -100,max = 100], value = 0) {
 
 function renderEditor() {
   const asset = selectedAsset();
-  if (!asset || asset.trashed) { main.innerHTML = `<div class="page"><div class="empty"><h2>${routes[state.route]}</h2><p>Vælg et aktivt billede i biblioteket.</p>${button('route','Åbn bibliotek','grid','primary','library')}</div></div>`; return; }
+  if (!asset || asset.trashed) { main.innerHTML = `<div class="page"><div class="empty"><h2>${routes[state.route]}</h2><p>Vælg et aktivt billede i biblioteket.</p>${button('route','Åbn bibliotek','library','primary','library')}</div></div>`; return; }
   state.active = asset.id;
   const assets = activeAssets();
   const index = assets.findIndex(a => a.id === asset.id);
   const start = Math.max(0, index - 35);
-  main.innerHTML = `<div class="editor"><div class="editor-bar"><div class="row">${button('route','Bibliotek','back','compact subtle','library')}<strong class="filename" title="${escape(asset.name)}">${escape(titleOf(asset))}</strong></div><div class="row">${button('mode-simple',state.studio ? 'Enkel visning' : 'Studievisning','sliders','compact subtle')}<button type="button" class="btn compact" id="hold-original" aria-label="Hold for at se original">${ico('visible')} Original</button>${state.studio ? `<button type="button" class="btn compact" data-action="clip" aria-pressed="${state.clipping}">Klipning</button><button type="button" class="btn compact" data-action="neutral" aria-pressed="${state.neutral}">Baggrund</button>` : ''}${button('export','Eksportér','export','compact primary')}</div></div>
+  main.innerHTML = `<div class="editor"><div class="editor-bar"><div class="row">${button('route','Bibliotek','back','compact subtle','library')}<strong class="filename" title="${escape(asset.name)}">${escape(titleOf(asset))}</strong></div><div class="row">${button('mode-simple',state.studio ? 'Enkel visning' : 'Studievisning','sliders','compact subtle')}<button type="button" class="btn compact" id="hold-original" aria-label="Hold for at se original">${ico('compare')} Original</button>${state.studio ? `<button type="button" class="btn compact" data-action="clip" aria-pressed="${state.clipping}">Klipning</button><button type="button" class="btn compact" data-action="neutral" aria-pressed="${state.neutral}">Baggrund</button>` : ''}${button('export','Eksportér','export','compact primary')}</div></div>
     <div class="edit-stage${state.neutral ? ' neutral' : ''}" id="edit-stage"><div class="stage-image" id="stage-image"><canvas id="edit-canvas" tabindex="0" aria-label="Forhåndsvisning af ${escape(titleOf(asset))}"></canvas><span class="light-point" id="light-point" hidden></span></div><div class="stage-badge" id="stage-badge" role="status">Åbner billede …</div></div><aside class="inspector" id="inspector" aria-label="Billedegenskaber">${panelMarkup(asset)}</aside>
     <div class="filmstrip" aria-label="Filmstrimmel">${assets.slice(start,start + 75).map(row => `<button type="button" class="film${row.id === asset.id ? ' active' : ''}" data-action="editor-asset" data-id="${escape(row.id)}" data-thumb="${escape(row.id)}" aria-label="Åbn ${escape(titleOf(row))}" title="${escape(titleOf(row))}">${ico('photo')}</button>`).join('')}</div></div>`;
   loadThumbs();
@@ -390,8 +394,8 @@ function renderViewer() {
   const assets = activeAssets();
   const asset = selectedAsset();
   const escapeButton = button('route','Tilbage til bibliotek','back','subtle','library');
-  const modes = [['album','Album'],['timeline','Tidslinje'],['map','Kort']];
-  const controls = `<div class="row">${modes.map(([key,label]) => button('viewer-mode',label,null,state.viewerMode === key ? 'violet' : 'subtle',key)).join('')}</div>`;
+  const modes = [['album','Album','library'],['timeline','Tidslinje','capture-date'],['map','Kort','location']];
+  const controls = `<div class="row">${modes.map(([key,label,icon]) => button('viewer-mode',label,icon,state.viewerMode === key ? 'violet' : 'subtle',key)).join('')}</div>`;
   if (!asset || !assets.length) { main.innerHTML = `<div class="page"><div class="empty"><h2>Ingen billeder at vise</h2>${escapeButton}</div></div>`; return; }
   if (state.viewerMode === 'timeline' || state.viewerMode === 'map') {
     const groups = new Map();
@@ -411,7 +415,7 @@ function renderViewer() {
   const ii = assets.findIndex(a => a.id === asset.id);
   main.innerHTML = `<div class="viewer" id="viewer-panel"><div class="row" style="justify-content:space-between"><div class="row">${escapeButton}<strong>${escape(titleOf(asset))}</strong><span class="status">${ii + 1} / ${assets.length}</span></div>${controls}</div>
     <div class="viewer-images"><div class="viewer-image"><canvas id="viewer-first" aria-label="Valgt billedversion"></canvas></div>${state.comparing ? '<div class="viewer-image"><canvas id="viewer-second" aria-label="Sammenligningsbillede"></canvas></div>' : ''}</div>
-    <div class="row"><button class="btn" data-action="viewer-prev" aria-label="Forrige billede" ${ii <= 0 ? 'disabled' : ''}>${ico('back')}</button><button class="btn" data-action="viewer-next" aria-label="Næste billede" ${ii + 1 === assets.length ? 'disabled' : ''}>${ico('arrow')}</button>${button('viewer-compare',state.comparing ? 'Luk sammenligning' : 'Sammenlign','copy','subtle')}${state.comparing ? `<select id="viewer-comparison" aria-label="Sammenlign med"><option value="original">Original</option>${assets.filter(row => row.id !== asset.id).map(row => `<option value="${escape(row.id)}">${escape(titleOf(row))}</option>`).join('')}</select>` : ''}<label class="check">Zoom <input id="viewer-zoom" type="range" min="100" max="300" step="5" value="${state.zoom}"><output id="viewer-zoom-label">${state.zoom}%</output></label>${button('fullscreen','Fuld skærm',null,'subtle')}<span id="viewer-status" class="status" role="status"></span></div></div>`;
+    <div class="row"><button class="btn" data-action="viewer-prev" aria-label="Forrige billede" ${ii <= 0 ? 'disabled' : ''}>${ico('back')}</button><button class="btn" data-action="viewer-next" aria-label="Næste billede" ${ii + 1 === assets.length ? 'disabled' : ''}>${ico('arrow')}</button>${button('viewer-compare',state.comparing ? 'Luk sammenligning' : 'Sammenlign','compare','subtle')}${state.comparing ? `<select id="viewer-comparison" aria-label="Sammenlign med"><option value="original">Original</option>${assets.filter(row => row.id !== asset.id).map(row => `<option value="${escape(row.id)}">${escape(titleOf(row))}</option>`).join('')}</select>` : ''}<label class="check">Zoom <input id="viewer-zoom" type="range" min="100" max="300" step="5" value="${state.zoom}"><output id="viewer-zoom-label">${state.zoom}%</output></label>${button('fullscreen','Fuld skærm',null,'subtle')}<span id="viewer-status" class="status" role="status"></span></div></div>`;
   $('viewer-zoom').parentElement.querySelector('input').style.width = '105px';
   updateZoom();
   void drawViewer();
@@ -462,7 +466,7 @@ function render() {
   main.replaceChildren(creative);
   import('./creative.js').then(({renderCreative}) => {
     if (!creative.isConnected) return;
-    return renderCreative(creative,state.route,{project,activeAsset:selectedAsset(),getFile,showEditor,persist,notify,drawPhoto,exportPhoto,defaultEdits,getEdits,saveVersion:versionSave});
+    return renderCreative(creative,state.route,{project,activeAsset:selectedAsset(),icon:ico,getFile,showEditor,persist,notify,drawPhoto,exportPhoto,defaultEdits,getEdits,saveVersion:versionSave});
   }).catch(error => { if (creative.isConnected) { creative.textContent = 'Arbejdsrummet kunne ikke åbnes.'; reportError(error); } });
 }
 

@@ -1,5 +1,5 @@
-const VERSION = 'luma-atelier-shell-v1';
-const APP = ['./','./index.html','./style.css','./creative.css','./app.js','./store.js','./imaging.js','./creative.js','./manifest.webmanifest','./assets/luma-192.png','./assets/luma-512.png','./assets/demo-1.jpg','./assets/demo-2.jpg','./assets/demo-3.jpg','./assets/demo-4.jpg','./assets/inter.woff2','./assets/bricolage.woff2'];
+const VERSION = 'luma-atelier-shell-v2';
+const APP = ['./','./index.html','./style.css','./creative.css','./app.js','./store.js','./imaging.js','./creative.js','./manifest.webmanifest','./assets/luma-192.png','./assets/luma-512.png','./assets/luma-maskable-512.png','./assets/luma-favicon.svg','./assets/brand/luma-mark.svg','./assets/brand/luma-logo-dark.svg','./assets/brand/luma-symbols.svg','./assets/demo-1.jpg','./assets/demo-2.jpg','./assets/demo-3.jpg','./assets/demo-4.jpg','./assets/inter.woff2','./assets/bricolage.woff2'];
 const RESOURCES = new Set(APP.map(path => new URL(path,self.location.href).href));
 
 self.addEventListener('install',event => {
