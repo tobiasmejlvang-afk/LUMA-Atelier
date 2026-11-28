@@ -1,3 +1,4 @@
+// The database name and file signature identify existing user projects and backups.
 const databaseName = 'luma-atelier';
 const projectKey = 'current';
 const backupSignature = new TextEncoder().encode('LUMAAT1\n');
@@ -115,7 +116,7 @@ export async function openStore() {
       const header = new Uint8Array(backupHeaderSize);
       header.set(backupSignature);
       new DataView(header.buffer).setUint32(backupSignature.length, manifest.length);
-      return new Blob([header, manifest, ...blobs], { type: 'application/x-luma-atelier' });
+      return new Blob([header, manifest, ...blobs], { type: 'application/x-bisfoto-editor' });
     },
 
     async restoreBackup(blob) {
@@ -181,7 +182,7 @@ function getAssetIds(project) {
 }
 
 async function readBackup(blob) {
-  if (blob.size < backupHeaderSize) throw new Error('Filen er for kort til at være en LUMA Atelier-backup.');
+  if (blob.size < backupHeaderSize) throw new Error('Filen er for kort til at være en projektbackup.');
   const header = new Uint8Array(await blob.slice(0, backupHeaderSize).arrayBuffer());
   if (!backupSignature.every((byte, index) => header[index] === byte)) throw new Error('Ukendt backupformat.');
   const manifestSize = new DataView(header.buffer).getUint32(backupSignature.length);

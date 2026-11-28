@@ -6,10 +6,10 @@ const formats = [
 ];
 
 const recipes = [
-  { id: 'light', name: 'Løft skyggerne', icon: '↗', edits: { exposure: 0.35, shadows: 24, highlights: -10 } },
-  { id: 'warm', name: 'Varmt aftenslys', icon: '☼', edits: { temperature: 24, highlights: -12, saturation: 7 } },
-  { id: 'soft', name: 'Bløde toner', icon: '◐', edits: { contrast: -16, highlights: -18, shadows: 15, saturation: -9 } },
-  { id: 'mono', name: 'Sort-hvid', icon: '◒', edits: { saturation: -100, contrast: 15 } },
+  { id: 'light', name: 'Løft skyggerne', icon: 'develop', edits: { exposure: 0.35, shadows: 24, highlights: -10 } },
+  { id: 'warm', name: 'Varmt aftenslys', icon: 'light', edits: { temperature: 24, highlights: -12, saturation: 7 } },
+  { id: 'soft', name: 'Bløde toner', icon: 'layers', edits: { contrast: -16, highlights: -18, shadows: 15, saturation: -9 } },
+  { id: 'mono', name: 'Sort-hvid', icon: 'mask', edits: { saturation: -100, contrast: 15 } },
 ];
 
 const escapeHtml = (value) => String(value ?? '').replace(/[&<>"']/g, (char) => ({
@@ -92,7 +92,7 @@ function composeDesign(canvas, source, format, layout, width = format.width) {
   const border = Math.round(width * 0.08);
   const fontSize = Math.max(10, Math.round(width * Number(layout.size || 7) / 100));
   const lineHeight = fontSize * 1.05;
-  context.font = `700 ${fontSize}px "Bricolage Grotesque", Arial, sans-serif`;
+  context.font = `700 ${fontSize}px Bricolage, Arial, sans-serif`;
   const lines = wrapText(context, text, width - 2 * border);
   const textHeight = lines.length * lineHeight;
   const position = layout.placement || 'bottom';
@@ -232,6 +232,7 @@ function designMarkup(assets, master, settings, active, icon) {
 async function renderDesign(container, ctx, assets) {
   const data = getCreative(ctx.project).design;
   const originalDimensions = new Map();
+  const typeReady = document.fonts?.load('700 16px Bricolage').catch(() => {});
   let master = assets.find((asset) => asset.id === data.masterId) || ctx.activeAsset || assets[0];
   if (!assets.includes(master)) master = assets[0];
   let active = formats.some((item) => item.id === data.active) ? data.active : formats[0].id;
@@ -343,6 +344,7 @@ async function renderDesign(container, ctx, assets) {
       const source = await ctx.getFile(mountedAsset);
       const info = await editedDimensions(source, shownEdits).catch(() => null);
       originalDimensions.set(mountedAsset.id, info);
+      await typeReady;
       if (!shell.isConnected) return;
       draw();
       exportButtons.forEach((button) => { button.disabled = showingLatest; });
@@ -641,7 +643,7 @@ function renderCreation(container, ctx, assets) {
   let sequence = 0;
   container.innerHTML = `<section class="cr-shell"><header class="cr-heading"><div><h1>Skab</h1><p>Afprøv en opskrift, og gennemgå ændringerne før du gemmer.</p></div></header>
     <div class="cr-create"><div class="cr-create-main"><div class="cr-before-after"><figure><canvas data-cr="before" aria-label="Foto før opskrift"></canvas><figcaption>Før</figcaption></figure><figure><canvas data-cr="after" aria-label="Foto med foreslået opskrift"></canvas><figcaption>Forslag</figcaption></figure></div>
-    <h2>Opskrifter</h2><div class="cr-recipes">${recipes.map((recipe) => `<button type="button" class="cr-secondary" data-recipe="${recipe.id}"><span aria-hidden="true">${recipe.icon}</span> ${recipe.name}</button>`).join('')}</div>
+    <h2>Opskrifter</h2><div class="cr-recipes">${recipes.map((recipe) => `<button type="button" class="cr-secondary" data-recipe="${recipe.id}" aria-pressed="false">${ctx.icon(recipe.icon)} ${recipe.name}</button>`).join('')}</div>
     <div data-cr="saved"></div></div>
     <aside class="cr-panel"><label>Billede<select data-cr="image">${assetOptions(assets, asset.id)}</select></label>
     <form data-cr="prompt-form"><label>Beskriv en redigering<textarea data-cr="prompt" rows="3" maxlength="300" placeholder="F.eks. Gør billedet lysere og varmere"></textarea></label><button class="cr-secondary" type="submit">Lav forslag</button></form>
@@ -660,6 +662,9 @@ function renderCreation(container, ctx, assets) {
   const exportButton = el('download');
   const recipeEdits = () => combinedEdits(plan.base, Object.fromEntries(Object.entries(plan.edits).filter(([key]) => plan.activeKeys.includes(key))), Number(strength.value));
   const updateButtons = () => {
+    for (const button of shell.querySelectorAll('[data-recipe]')) {
+      button.setAttribute('aria-pressed', String(button.dataset.recipe === plan?.id));
+    }
     strength.disabled = !plan;
     save.disabled = !plan?.activeKeys.length || !ctx.saveVersion;
     exportButton.disabled = !plan;
