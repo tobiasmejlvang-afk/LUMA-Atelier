@@ -1,10 +1,16 @@
-# LUMA-Atelier
+# BisFoto Editor
 
-LUMA Atelier er et lokalt fotostudie til web og tablet med billedbibliotek, redigering, eksport og fotobøger. Originaler og redigeringer gemmes i browseren.
+BisFoto Editor er et lokalt fotostudie til web og tablet med billedbibliotek, redigering, eksport og fotobøger. Originaler og redigeringer gemmes i browseren.
 
 ## Start lokalt
 
-Kør `python -m http.server 8080` fra repositoryets rod og åbn [LUMA Atelier lokalt](http://localhost:8080/dist/). Appen kan hostes statisk fra `dist/` uden et byggetrin.
+Kør `python -m http.server 8080` fra repositoryets rod og åbn [BisFoto Editor lokalt](http://localhost:8080/dist/). Appen kan hostes statisk fra `dist/` uden et byggetrin.
+
+## Design
+
+[Fotobibliotek](design/fotobibliotek.jpg) · [Fremkald](design/fremkald.jpg)
+
+[Designoversigt](design/identitet.png) · [Designark i SVG](design/komponenter.svg) · [Hent de enkelte vektorkomponenter](design/komponenter/)
 
 ## Test
 

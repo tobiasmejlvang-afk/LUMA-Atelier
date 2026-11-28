@@ -6,7 +6,7 @@ import { fileURLToPath } from 'node:url';
 const { chromium } = await import(process.env.LUMA_PLAYWRIGHT_MODULE || 'playwright');
 const home = 'https://luma-library-test.invalid';
 const siteDirectory = fileURLToPath(new URL('../dist/', import.meta.url));
-const types = { '.html':'text/html', '.css':'text/css', '.js':'text/javascript', '.json':'application/json', '.webmanifest':'application/manifest+json', '.jpg':'image/jpeg', '.png':'image/png', '.svg':'image/svg' };
+const types = { '.html':'text/html', '.css':'text/css', '.js':'text/javascript', '.json':'application/json', '.webmanifest':'application/manifest+json', '.jpg':'image/jpeg', '.png':'image/png', '.svg':'image/svg+xml' };
 const total = 1900;
 const testPhoto = 'luma-qa-0000';
 const browser = await chromium.launch({ channel:process.env.LUMA_BROWSER || 'msedge', headless:true });
@@ -30,7 +30,7 @@ try {
   });
 
   await page.goto(home);
-  await page.getByRole('heading', { name:'Bibliotek' }).waitFor();
+  await page.getByRole('heading', { name:'Fotobibliotek' }).waitFor();
   const started = Date.now();
   await page.evaluate(async ({ total, testPhoto }) => {
     const canvas = document.createElement('canvas');
@@ -107,7 +107,7 @@ try {
   await page.evaluate(() => {
     const click = HTMLAnchorElement.prototype.click;
     HTMLAnchorElement.prototype.click = function captureTestDownload() {
-      if (this.download.endsWith('.luma')) window.lumaQaBackup = fetch(this.href).then(response => response.blob());
+      if (this.download.endsWith('.bisfoto')) window.lumaQaBackup = fetch(this.href).then(response => response.blob());
       else click.call(this);
     };
   });
